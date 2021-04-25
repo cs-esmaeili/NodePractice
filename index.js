@@ -1,56 +1,59 @@
-const chalk = require('chalk');
-const yargs = require('yargs');
-const contactManager = require('./contactsManager');
+const http = require("http");
+const fs = require("fs");
 
-yargs.scriptName(chalk.yellow('Contact manager'));
-yargs.usage(`$0 ${chalk.red("<command>")} ${chalk.green("<args>")}`)
+const server = http.createServer((req, res) => {
+    //url, method, headers
+    // const url = req.url;
+    // const method = req.method;
+    // const header = req.headers;
+    const { url, method } = req;
+    // console.log(`Url: ${url} \n Method: ${method} \n Headers: ${headers}`);
+    res.setHeader("Content-Type", "text/html");
 
-yargs.command({
-    command: "create",
-    describe: "[create new contact]",
-    builder: {
-        fullname: {
-            alias: "f",
-            describe: "Person fullname",
-            demandOption: true,
-            type: "string",
-        },
-        phone: {
-            alias: "p",
-            describe: "Person phone number",
-            demandOption: true,
-            type: "number",
-        },
-    },
-    handler({
-        fullname,
-        phone
-    }) {
-        // console.log(fullname , phone);
-        contactManager.addContact(fullname, phone);
+    if (url === "/hello") {
+        res.write("<html>");
+        res.write("<head><title>Hello World</title></head>");
+        res.write("<body><center><h1>Hello World</h1><center></body>");
+        res.write("</html>");
+        return res.end();
+    } else if (url === "/") {
+        res.write("<html>");
+        res.write("<head><title>Hello World</title></head>");
+        res.write("<body><center>");
+        res.write("<h1>Home Page</h1>");
+        res.write("<form action='/message' method='POST'>");
+        res.write("<input type='text' name='message'/>");
+        res.write("<input type='submit'/>");
+        res.write("</form>");
+        res.write("</center></body>");
+        res.write("</html>");
+        return res.end();
+    } else if (url === "/message" && method === "POST") {
+        const body = [];
+
+        req.on("data", (chunk) => {
+            body.push(chunk);
+            // console.log(body);
+        });
+
+        req.on("end", () => {
+            const parsedBody = Buffer.concat(body).toString();
+            // console.log(parsedBody);
+            const message = parsedBody.split("=")[1];
+            fs.writeFileSync("message.txt", message);
+        });
+
+        // res.statusCode = 302;
+        // res.setHeader("Location", "/");
+        res.writeHead(302, { Location: "/" });
+        return res.end();
+    } else {
+        res.write("<html>");
+        res.write("<head><title>Hello World</title></head>");
+        res.write("<body><center><h1>Not Found!</h1><center></body>");
+        res.write("</html>");
+        return res.end();
     }
 });
-yargs.command({
-    command: "list",
-    describe: "[contacts list]",
-    handler() {
-        console.table(contactManager.contacts());
-    }
-});
-yargs.command({
-    command: "remove",
-    describe: "[remove contact]",
-    builder: {
-        fullname: {
-            alias: "f",
-            describe: "Person fullname",
-            demandOption: true,
-            type: "string",
-        },
-    },
-    handler({fullname}) {
-        console.table(contactManager.removeContact(fullname));
-    }
-});
 
-yargs.parse();
+server.listen(3000);
