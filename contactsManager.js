@@ -1,5 +1,5 @@
 const fs = require('fs');
-const chalk = require('chalk'); 
+const chalk = require('chalk');
 
 const fileName = "contacts.json";
 
@@ -13,13 +13,18 @@ const contacts = (path = fileName) => {
     }
 }
 const writeFile = (data) => {
-    fs.writeFileSync(fileName, JSON.stringify(data), (e) => {
-        if (e) {
-            console.log(chalk.red('error in save contact'));
-        } else {
-            console.log(chalk.green('contact saved'));
-        }
-    });
+    try {
+        fs.writeFileSync(fileName, JSON.stringify(data), (e) => {
+            if (e) {
+                console.log(chalk.red('error in save contact'));
+            } else {
+                console.log(chalk.green('contact saved'));
+            }
+        });
+        console.log(chalk.green('contact saved'));
+    } catch (error) {
+        console.log(chalk.red('error in save contact'));
+    }
 }
 const checkDuplicateContacts = (data, fullname, phone) => {
     const temp = data.find(c => (c.fileName === fullname || c.phone === phone));
@@ -38,12 +43,24 @@ const addContact = (fullname, phone) => {
             phone
         });
         writeFile(data);
-    }else{
+    } else {
         console.log(chalk.red("contact is exists"));
     }
 }
 
+const removeContact = (fullname) => {
+    const data = contacts(fileName);
+    const filterdContact = data.filter(c => c.fullname !== fullname);
+
+    if (data.length > filterdContact.length) {
+        writeFile(filterdContact);
+        console.log(chalk.green('contact removed !'));
+    } else {
+        console.log(chalk.red('contact not found !'));
+    }
+}
 module.exports = {
     addContact,
+    removeContact,
     contacts,
 }

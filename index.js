@@ -1,5 +1,9 @@
+const chalk = require('chalk');
 const yargs = require('yargs');
 const contactManager = require('./contactsManager');
+
+yargs.scriptName(chalk.yellow('Contact manager'));
+yargs.usage(`$0 ${chalk.red("<command>")} ${chalk.green("<args>")}`)
 
 yargs.command({
     command: "create",
@@ -31,6 +35,21 @@ yargs.command({
     describe: "[contacts list]",
     handler() {
         console.table(contactManager.contacts());
+    }
+});
+yargs.command({
+    command: "remove",
+    describe: "[remove contact]",
+    builder: {
+        fullname: {
+            alias: "f",
+            describe: "Person fullname",
+            demandOption: true,
+            type: "string",
+        },
+    },
+    handler({fullname}) {
+        console.table(contactManager.removeContact(fullname));
     }
 });
 
